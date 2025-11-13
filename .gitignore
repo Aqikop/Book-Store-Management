@@ -1,0 +1,8 @@
+# VSCode workspace settings
+.vscode/settings.json
+
+# Output directory
+/bin/
+
+# Compile class files
+*.class
