@@ -7,7 +7,13 @@ public class books {
     private double price;
     private String publisherId;
 
-    public books() {}
+    public books() {
+        this.bookId = null;
+        this.bookName = null;
+        this.authorId = null;
+        this.price = 0;
+        this.publisherId = null;
+    }
 
     public books(String bookId, String bookName, String authorId, double price, String publisherId){
         this.bookId = bookId;
