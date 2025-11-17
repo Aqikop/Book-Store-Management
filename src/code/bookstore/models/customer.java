@@ -29,4 +29,44 @@ public class customer {
         this.phonenum = phonenum;
     }
 
+    public void setcustomerId(String customerId){
+        this.customerId = customerId;
+    }
+
+    public void setcustomerName(String customerName){
+        this.customerName = customerName;
+    }
+
+    public void setaddress(String address){
+        this.address = address;
+    }
+
+    public void setcity(String city){
+        this.city = city;
+    }
+
+    public void setzip(String zip){
+        this.zip = zip;
+    }
+
+    public void setemail(String email){
+        this.email = email;
+    }
+
+    public void setphonenumber(String phonenum){
+        this.phonenum = phonenum;
+    }
+
+    public String getInfo(){
+        return "Customer{" +
+                "customerId:" + customerId + '\'' +
+                ", customerName:" + customerName + '\'' +
+                ", customerName:" + customerName + '\'' +
+                ", address:" + address + '\'' +
+                ", city:" + city + '\'' +
+                ", zip code:" + zip + '\'' +
+                ", email:" + email + '\'' +
+                ", phone number:" + phonenum +
+                "}";
+    }
 }
