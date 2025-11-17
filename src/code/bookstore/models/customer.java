@@ -8,6 +8,7 @@ public class customer {
     private String zip;
     private String email;
     private String phonenum;
+    private String cardnum;
 
     public customer() {
         this.customerId = null;
@@ -17,9 +18,10 @@ public class customer {
         this.zip = null;
         this.email = null;
         this.phonenum = null;
+        this.cardnum = null;
     }
 
-    public customer(String customerId, String customerName, String address, String city, String zip, String email, String phonenum){
+    public customer(String customerId, String customerName, String address, String city, String zip, String email, String phonenum, String cardnum){
         this.customerId = customerId;
         this.customerName = customerName;
         this.address = address;
@@ -27,6 +29,7 @@ public class customer {
         this.zip = zip;
         this.email = email;
         this.phonenum = phonenum;
+        this.cardnum = cardnum;
     }
 
     public void setcustomerId(String customerId){
@@ -57,6 +60,10 @@ public class customer {
         this.phonenum = phonenum;
     }
 
+    public void setcardnum(String cardnum){
+        this.cardnum = cardnum;
+    }
+
     public String getInfo(){
         return "Customer{" +
                 "customerId:" + customerId + '\'' +
@@ -66,7 +73,8 @@ public class customer {
                 ", city:" + city + '\'' +
                 ", zip code:" + zip + '\'' +
                 ", email:" + email + '\'' +
-                ", phone number:" + phonenum +
+                ", phone number:" + phonenum + '\'' +
+                ", credit card number:" + cardnum +
                 "}";
     }
 }
