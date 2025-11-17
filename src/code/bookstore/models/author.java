@@ -14,11 +14,11 @@ public class author{
         this.authorName = authorName;
     }
 
-    public void setId(String authorId){
+    public void setauthorId(String authorId){
         this.authorId = authorId;
     }
 
-    public void setName(String authorName){
+    public void setauthorName(String authorName){
         this.authorName = authorName;
     }
 
