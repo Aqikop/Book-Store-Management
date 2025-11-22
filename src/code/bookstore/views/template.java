@@ -19,22 +19,34 @@ public class template extends JFrame{
         setSize(1000, 500);
         setTitle("Bala's Book Store");
         setLayout(new BorderLayout());
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                int yes = JOptionPane.showConfirmDialog(template.this, "Logout ?","Logout ?", JOptionPane.YES_NO_OPTION);
+                        if(yes == JOptionPane.YES_OPTION){
+                            System.out.println("Close successfully");
+                            System.exit(0); 
+                        }
+            }
+        });
     }
 
     private void init_navBar(){
         // Nav bar
         JPanel header = new JPanel();
         header.setPreferredSize(new Dimension(1000,60));
-        header.setBackground(Color.decode("#03fcdb"));
+        header.setBackground(Color.decode("#F5F5F5"));
         header.setLayout(new BorderLayout());
         add(header, BorderLayout.NORTH);
 
         // Title
         JLabel title = new JLabel("Bala's Book Store");
         title.setFont(new Font("Montserrat", Font.BOLD, 20));
-        title.setBackground(Color.BLACK);
+        title.setBackground(Color.decode("#1E1E1E"));
         title.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+        title.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         header.add(title, BorderLayout.WEST);
 
         title.addMouseListener(new MouseAdapter() {
@@ -50,7 +62,8 @@ public class template extends JFrame{
         nav_bar.setOpaque(false);
         nav_bar.add(nav_items("Browse"));
         nav_bar.add(nav_items("Cart"));
-        nav_bar.add(nav_items("Logout"));
+        nav_bar.add(nav_items("Login"));
+        nav_bar.add(nav_items("Sign up"));
 
         header.add(nav_bar, BorderLayout.EAST);
     }
@@ -72,6 +85,9 @@ public class template extends JFrame{
         JPanel browse_view = browse.init_panel();
         page.add(browse_view, "Browse");
 
+        signup signup = new signup();
+        JPanel signup_view = signup.init_panel();
+        page.add(signup_view, "Signup");
 
         // Always shows homepage
         page_container.show(page, "Home");
@@ -80,23 +96,23 @@ public class template extends JFrame{
     private JLabel nav_items(String title){
         JLabel item = new JLabel(title);
         item.setFont(new Font("Montserrat", Font.BOLD, 15));
+        item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // Handle mouse clicked
         item.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
                 switch (title) {
                     case "Browse":
-                        JOptionPane.showMessageDialog(item, "browse");
                         page_container.show(page, "Browse");
                         page.revalidate();
                         break;
                     case "Cart":
                         break;
-                    case "Logout":
-                        int yes = JOptionPane.showConfirmDialog(item, "Logout ?","Logout ?", JOptionPane.YES_NO_OPTION);
-                        if(yes == JOptionPane.YES_OPTION){
-                            System.exit(0); 
-                        }
+                    case "Login":
+                        break;
+                    case "Sign up":
+                        page_container.show(page, "Signup");
+                        page.revalidate();
                         break;  
                     default:
                         break;
