@@ -19,11 +19,12 @@ public class template extends JFrame{
         setSize(1000, 500);
         setTitle("Bala's Book Store");
         setLayout(new BorderLayout());
+        setResizable(false);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
-                int yes = JOptionPane.showConfirmDialog(template.this, "Logout ?","Logout ?", JOptionPane.YES_NO_OPTION);
+                int yes = JOptionPane.showConfirmDialog(template.this, "Do you want to exit the app  ?","Logout ?", JOptionPane.YES_NO_OPTION);
                         if(yes == JOptionPane.YES_OPTION){
                             System.out.println("Close successfully");
                             System.exit(0); 
@@ -89,6 +90,10 @@ public class template extends JFrame{
         JPanel signup_view = signup.init_panel();
         page.add(signup_view, "Signup");
 
+        login login = new login();
+        JPanel login_view = login.init_panel();
+        page.add(login_view, "Login");
+
         // Always shows homepage
         page_container.show(page, "Home");
     }
@@ -109,6 +114,8 @@ public class template extends JFrame{
                     case "Cart":
                         break;
                     case "Login":
+                        page_container.show(page, "Login");
+                        page.revalidate();
                         break;
                     case "Sign up":
                         page_container.show(page, "Signup");
