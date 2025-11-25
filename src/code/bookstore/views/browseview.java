@@ -1,11 +1,8 @@
 package code.bookstore.views;
 
 import javax.swing.*;
-import javax.swing.FocusManager;
-
 import java.awt.image.*;
 import java.io.File;
-
 import javax.imageio.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -65,17 +62,18 @@ public class browseview {
             }
         });
 
-
         JPanel result_list = new JPanel();
         result_list.setLayout(new BoxLayout(result_list, BoxLayout.Y_AXIS));
         result_list.setBackground(Color.WHITE);
         result_list.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // Sample data 
         String[] titles = {"The Heart-Shaped Tin", "To Kill a Mockingbird", "1984", "Pride and Prejudice", "The Great Gatsby"};
         String[] authors = {"Bee Wilson", "Harper Lee", "George Orwell", "Jane Austen", "F. Scott Fitzgerald"};
         String[] publishers = {"Penguin Books", "Harper Perennial", "Signet Classics", "Vintage Classics", "Scribner"};
         double[] prices = {19.99, 15.99, 13.50, 17.25, 16.75};
 
+        // Iterate through search result (i < n)
         for(int i = 0; i < 5; i++){
             JPanel book_entry = new JPanel(new BorderLayout());
             book_entry.setBackground(Color.decode("#ffffff"));
@@ -100,6 +98,7 @@ public class browseview {
             }
             book_cover_label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
 
+            // Book info panel
             JPanel book_info = new JPanel();
             book_info.setLayout(new BoxLayout(book_info, BoxLayout.Y_AXIS));
             book_info.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
@@ -122,6 +121,70 @@ public class browseview {
             book_pub.setFont(new Font("Lato", Font.PLAIN, 12));
             book_pub.setAlignmentX(Component.LEFT_ALIGNMENT); 
 
+            JPanel shop_panel = new JPanel();
+            shop_panel.setLayout(new BoxLayout(shop_panel, BoxLayout.Y_AXIS));
+            shop_panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 10));
+            shop_panel.setPreferredSize(new Dimension(180, 160));
+            shop_panel.setOpaque(false);
+
+            // Quantity selection
+            JPanel quantity_choose = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            quantity_choose.setAlignmentX(Component.LEFT_ALIGNMENT);
+            quantity_choose.setOpaque(false);
+
+            JLabel quantity_text = new JLabel("Quantity:");
+            quantity_text.setFont(new Font("Lato", Font.PLAIN, 14));
+
+            JSpinner quantity_scoller = new JSpinner(new SpinnerNumberModel(1, 1, 99 ,1));
+            quantity_scoller.setFont(new Font("Lato", Font.PLAIN, 14));
+            quantity_scoller.setPreferredSize(new Dimension(60, 30));
+
+            quantity_choose.add(quantity_text);
+            quantity_choose.add(Box.createRigidArea(new Dimension(2, 0)));
+            quantity_choose.add(quantity_scoller);
+
+            // Buy button
+            JButton buy_btn = new JButton("Buy now");
+            buy_btn.setMaximumSize(new Dimension(150 , 35));
+            buy_btn.setBackground(Color.decode("#27ae60"));
+            buy_btn.setForeground(Color.WHITE);
+            buy_btn.setFont(new Font("Lato", Font.BOLD, 14));
+            buy_btn.setFocusPainted(false);
+            buy_btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            buy_btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            buy_btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Add to cart button
+            JButton cart_btn = new JButton("Add to cart");
+            cart_btn.setMaximumSize(new Dimension(150 , 35));
+            cart_btn.setBackground(Color.decode("#3498db"));
+            cart_btn.setForeground(Color.WHITE);
+            cart_btn.setFont(new Font("Lato", Font.BOLD, 14));
+            cart_btn.setFocusPainted(false);
+            cart_btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            cart_btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            cart_btn.setAlignmentX((Component.LEFT_ALIGNMENT));
+
+            buy_btn.addMouseListener(new MouseAdapter(){
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    //int qty = (Integer) quantity_scoller.getValue();
+                }
+            });
+
+            cart_btn.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    //int qty = (Integer) quantity_scoller.getValue();
+                }
+            });
+
+            shop_panel.add(quantity_choose);
+            shop_panel.add(Box.createRigidArea(new Dimension(0, 3)));
+            shop_panel.add(buy_btn);
+            shop_panel.add(Box.createRigidArea(new Dimension(0, 3)));
+            shop_panel.add(cart_btn);
+
             book_info.add(book_title);
             book_info.add(book_author);
             book_info.add(book_price);
@@ -129,6 +192,7 @@ public class browseview {
 
             book_entry.add(book_cover_label, BorderLayout.WEST);
             book_entry.add(book_info, BorderLayout.CENTER);
+            book_entry.add(shop_panel, BorderLayout.EAST);
 
 
             result_list.add(book_entry);
