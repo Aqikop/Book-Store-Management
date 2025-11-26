@@ -89,6 +89,10 @@ public class template extends JFrame{
         JPanel signup_view = signup.init_panel();
         page.add(signup_view, "Signup");
 
+        login login = new login();
+        JPanel login_view = login.init_panel();
+        page.add(login_view, "Login");
+
         // Always shows homepage
         page_container.show(page, "Home");
     }
@@ -109,6 +113,8 @@ public class template extends JFrame{
                     case "Cart":
                         break;
                     case "Login":
+                        page_container.show(page, "Login");
+                        page.revalidate();
                         break;
                     case "Sign up":
                         page_container.show(page, "Signup");
