@@ -76,7 +76,7 @@ public class template extends JFrame{
         add(page, BorderLayout.CENTER);
 
         // Init homepage view
-        homeview home = new homeview();
+        homeview home = new homeview(page_container, page);
         JPanel home_view = home.init_panel();
         page.add(home_view, "Home");
 
@@ -85,13 +85,13 @@ public class template extends JFrame{
         JPanel browse_view = browse.init_panel();
         page.add(browse_view, "Browse");
 
-        signup signup = new signup();
+        login login = new login(page_container, page);
+        JPanel login_view = login.init_panel();
+        page.add(login_view,"Login");
+
+        signup signup = new signup(page_container, page);
         JPanel signup_view = signup.init_panel();
         page.add(signup_view, "Signup");
-
-        login login = new login();
-        JPanel login_view = login.init_panel();
-        page.add(login_view, "Login");
 
         // Always shows homepage
         page_container.show(page, "Home");

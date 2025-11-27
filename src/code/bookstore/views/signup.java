@@ -1,12 +1,22 @@
 package code.bookstore.views;
 
 import javax.swing.*;
+import javax.swing.FocusManager;
+
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.*;
 import java.io.*;
 
 public class signup {
+    private CardLayout page_container;
+    private JPanel page;
+
+    public signup(CardLayout page_container, JPanel page) {
+        this.page_container = page_container;
+        this.page = page;
+    }
+
     public JPanel init_panel(){
         JPanel panel = new JPanel(new GridBagLayout()){
             private BufferedImage bg;
@@ -49,6 +59,18 @@ public class signup {
         JLabel element12 = new JLabel("<html>Already a member ? <font color='#0c08d1'>Log In</font></html>");
         element12.setFont(new Font("Lato", Font.BOLD, 14));
         element12.setForeground(Color.decode("#1b1b1b"));
+        element12.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        //add click event
+        element12.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                page_container.show(page, "Login");
+                page.revalidate();
+                page.repaint();
+            }
+        });
+
         gbc.gridy = 1;
         gbc.insets = new Insets(5, 10, 10, 10);
         panel.add(element12, gbc);
