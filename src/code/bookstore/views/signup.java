@@ -168,6 +168,18 @@ public class signup {
         signup_button.setForeground(Color.decode("#1b1b1b"));
         signup_button.setFont(new Font("Lato", Font.BOLD, 14));
         signup_button.setFocusPainted(false);
+
+        signup_button.addActionListener(e -> {
+            String firstname = fname.getText();
+            String lastname = lname.getText();
+            String email = email_input.getText();
+            String password = new String(pass_input.getPassword());
+
+            System.out.println("First Name: " + firstname);
+            System.out.println("Last Name: " + lastname);
+            System.out.println("Email: " + email);
+            System.out.println("Password: " + password);
+        });
         //OnClickEventHelper.setOnClickColor(signup_button, Color.decode("#c2c2c2"), Color.decode("#ffffff"));
         gbc.gridy = 6;
         panel.add(signup_button, gbc);
