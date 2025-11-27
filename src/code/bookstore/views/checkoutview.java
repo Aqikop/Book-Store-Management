@@ -22,7 +22,12 @@ public class checkoutview {
         header_text.setFont(new Font("Lato", Font.BOLD, 18));
         header.add(header_text, BorderLayout.WEST);
 
-        
+        // Sample data 
+        String[] titles = {"The Heart-Shaped Tin", "To Kill a Mockingbird", "Abc"};
+        String[] authors = {"Bee Wilson", "Harper Lee", "Bac"};
+        String[] publishers = {"Penguin Books", "Harper Perennial"};
+        double[] prices = {19.99, 15.99, 99.99};
+
         JPanel review = new JPanel();
         review.setLayout(new BoxLayout(review, BoxLayout.Y_AXIS));
         review.setBackground(Color.WHITE);
@@ -30,16 +35,11 @@ public class checkoutview {
             BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 3),
             BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
-        review.setPreferredSize(new Dimension(500, 0));
+        review.setPreferredSize(new Dimension(500, 180 * titles.length));
 
-        // Sample data 
-        String[] titles = {"The Heart-Shaped Tin", "To Kill a Mockingbird"};
-        String[] authors = {"Bee Wilson", "Harper Lee"};
-        String[] publishers = {"Penguin Books", "Harper Perennial"};
-        double[] prices = {19.99, 15.99};
 
         // Iterate through search result (i < n)
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; i < titles.length; i++){
             JPanel book_entry = new JPanel(new BorderLayout());
             book_entry.setBackground(Color.decode("#ffffff"));
             book_entry.setBorder(BorderFactory.createCompoundBorder(
@@ -114,17 +114,16 @@ public class checkoutview {
 
             review.add(book_entry);
 
-            if(i < 1){
+            if(i < titles.length - 1){
                 review.add(Box.createRigidArea(new Dimension(0, 10)));
             }
         }
        
-        
         JPanel order_summary = new JPanel(new BorderLayout());
         order_summary.setPreferredSize(new Dimension(280, 0));
         order_summary.setBackground(Color.WHITE);
         order_summary.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#e0e0e0")),
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 3),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
             ));
         JLabel summary_text = new JLabel("Order Summary");
@@ -164,14 +163,25 @@ public class checkoutview {
 
         order_summary.add(summary_content, BorderLayout.CENTER);
 
-        
+        JButton checkout_btn = new JButton("Confirm and Pay");
+        checkout_btn.setMaximumSize(new Dimension(240, 40));
+        checkout_btn.setBackground(Color.decode("#0651c9"));
+        checkout_btn.setForeground(Color.WHITE);
+        checkout_btn.setFont(new Font("Lato", Font.BOLD, 15));
+        checkout_btn.setFocusPainted(false);
+        checkout_btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        checkout_btn.setBorder(BorderFactory.createEmptyBorder(10 ,15, 10, 15));
 
-        // JPanel ship_info = new JPanel();
+        order_summary.add(checkout_btn, BorderLayout.SOUTH);
+
+        JScrollPane scroll_bar = new JScrollPane(review);
+        scroll_bar.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll_bar.getVerticalScrollBar().setUnitIncrement(16);
+        scroll_bar.setBorder(null);
 
         checkout.add(header, BorderLayout.NORTH);
-        checkout.add(review, BorderLayout.CENTER);
+        checkout.add(scroll_bar, BorderLayout.CENTER);
         checkout.add(order_summary, BorderLayout.EAST);
-        // checkout.add(ship_info, BorderLayout.SOUTH);
 
         return checkout;
     }
