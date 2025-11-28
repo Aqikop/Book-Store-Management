@@ -86,6 +86,11 @@ public class template extends JFrame{
         JPanel browse_view = browse.init_panel();
         page.add(browse_view, "Browse");
 
+        //Init checkout page view
+        checkoutview checkout = new checkoutview(page_container, page);
+        JPanel checkout_view = checkout.init_panel();
+        page.add(checkout_view, "Cart");
+
         signup signup = new signup();
         JPanel signup_view = signup.init_panel();
         page.add(signup_view, "Signup");
@@ -112,6 +117,8 @@ public class template extends JFrame{
                         page.revalidate();
                         break;
                     case "Cart":
+                        page_container.show(page, "Cart");
+                        page.revalidate();
                         break;
                     case "Login":
                         page_container.show(page, "Login");
