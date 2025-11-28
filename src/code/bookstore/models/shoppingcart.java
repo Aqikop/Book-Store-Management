@@ -1,14 +1,14 @@
 package code.bookstore.models;
 
-public class shoppingcart {
-    private int cardId;
+abstract class shoppingcart extends id{
+    private int cartId;
     private books bookId;
     private double price;
     private String date;
     private int quantity;
 
     public shoppingcart(){
-        this.cardId = 0;
+        this.cartId = 0;
         this.bookId = null;
         this.price = 0;
         this.date = null;
@@ -16,15 +16,15 @@ public class shoppingcart {
     }
 
     public shoppingcart(int cardId, books bookId, double price, String date, int quantity){
-        this.cardId = cardId;
+        this.cartId = cardId;
         this.bookId = bookId;
         this.price = price;
         this.date = date;
         this.quantity = quantity;
     }
 
-    public void setcardId(int cardId){
-        this.cardId = cardId;
+    public void setId(int cardId){
+        this.cartId = cardId;
     }
     
     public void setbookId(books bookId){
@@ -45,7 +45,7 @@ public class shoppingcart {
 
     public String getInfo(){
         return "Shopping cart{" +
-                "cardId:" + cardId + '\'' +
+                "cartId:" + cartId + '\'' +
                 ", bookId:" + bookId + '\'' +
                 ", price:" + price + '\'' +
                 ", date:" + date + '\'' +

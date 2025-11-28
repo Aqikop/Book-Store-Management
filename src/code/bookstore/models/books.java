@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-public class books {
+abstract class books extends id{
     private String bookId;
     private String bookName;
     private String authorId;
@@ -23,7 +23,7 @@ public class books {
         this.publisherId = publisherId;
     }
 
-    public void setBookId(String bookId){
+    public void setId(String bookId){
         this.bookId = bookId;
     }
 

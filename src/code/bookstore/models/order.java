@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-public class order {
+abstract class order extends id{
     private int orderId;
     private customer customerId;
     private shoppingcart cartId;
@@ -20,7 +20,7 @@ public class order {
         this.orderdate = orderdate;
     }
 
-    public void setorderId(int orderId){
+    public void setId(int orderId){
         this.orderId = orderId;
     }
 

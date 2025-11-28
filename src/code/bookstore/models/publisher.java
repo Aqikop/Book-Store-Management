@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-public class publisher {
+abstract class publisher extends id{
     private String publisherId;
     private String publisherName;
 
@@ -14,7 +14,7 @@ public class publisher {
         this.publisherName = publisherName;
     }
 
-    public void setpublisherId(String publisherId){
+    public void setId(String publisherId){
         this.publisherId = publisherId;
     }
 

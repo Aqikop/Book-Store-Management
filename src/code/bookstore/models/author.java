@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-public class author{
+abstract class author extends id{
     private String authorId;
     private String authorName;
     
@@ -14,7 +14,7 @@ public class author{
         this.authorName = authorName;
     }
 
-    public void setauthorId(String authorId){
+    public void setId(String authorId){
         this.authorId = authorId;
     }
 

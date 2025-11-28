@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-public class customer {
+abstract class customer extends id{
     private String customerId;
     private String customerName;
     private String address;
@@ -32,7 +32,7 @@ public class customer {
         this.cardnum = cardnum;
     }
 
-    public void setcustomerId(String customerId){
+    public void setId(String customerId){
         this.customerId = customerId;
     }
 
