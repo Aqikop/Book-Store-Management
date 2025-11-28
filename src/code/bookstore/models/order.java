@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-abstract class order extends id{
+abstract class order extends extra{
     private int orderId;
     private customer customerId;
     private shoppingcart cartId;

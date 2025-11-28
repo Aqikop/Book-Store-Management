@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-abstract class shoppingcart extends id{
+abstract class shoppingcart extends extra{
     private int cartId;
     private books bookId;
     private double price;

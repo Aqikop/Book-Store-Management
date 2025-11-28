@@ -1,6 +1,6 @@
 package code.bookstore.models;
 
-abstract class publisher extends id{
+abstract class publisher extends extra{
     private String publisherId;
     private String publisherName;
 
