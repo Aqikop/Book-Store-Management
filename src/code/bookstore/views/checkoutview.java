@@ -372,6 +372,31 @@ public class checkoutview {
         gbc.gridwidth = 5;
         info_form.add(cc_num_in, gbc);
 
+        JLabel shipping_types = new JLabel("Shipping Types");
+        shipping_types.setFont(new Font("Lato", Font.BOLD, 13));
+        gbc.gridx = 5; 
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        info_form.add(shipping_types, gbc);
+
+        String[] ship_types = {"Standard", "Express"};
+        JPanel shipping_types_panel = new JPanel(new BorderLayout());
+        shipping_types_panel.setOpaque(false);
+        gbc.gridx = 5; 
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+
+        JComboBox<String> cb = new JComboBox<>(ship_types);
+        cb.setFont(new Font("Lato", Font.PLAIN, 13));
+        cb.setOpaque(false);
+        cb.addActionListener(e ->{
+            String types = (String) cb.getSelectedItem();
+            System.out.println("Choice: " + types);
+        });
+        shipping_types_panel.add(cb, BorderLayout.WEST);
+        info_form.add(shipping_types_panel, gbc);
+
+
         payment_info.add(info_form, BorderLayout.WEST);
 
         return payment_info;
