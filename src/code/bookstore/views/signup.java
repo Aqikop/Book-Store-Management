@@ -1,18 +1,33 @@
 package code.bookstore.views;
 
 import javax.swing.*;
+import javax.swing.FocusManager;
+
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.*;
 import java.io.*;
+import java.util.Map;
+
+import code.bookstore.controllers.user_controller;
 
 public class signup {
+    private CardLayout page_container;
+    private JPanel page;
+    private user_controller userController;
+
+    public signup(CardLayout page_container, JPanel page) {
+        this.page_container = page_container;
+        this.page = page;
+        this.userController = new user_controller();
+    }
+
     public JPanel init_panel(){
         JPanel panel = new JPanel(new GridBagLayout()){
             private BufferedImage bg;
             {
                 try {
-                    bg = ImageIO.read(new File("src\\resources\\images\\signup.jpg"));
+                    bg = ImageIO.read(new File("src\\resources\\images\\signup2.png"));
                 } catch(IOException e){
                     e.printStackTrace();
                     bg = null;
@@ -52,6 +67,15 @@ public class signup {
         gbc.gridy = 1;
         gbc.insets = new Insets(5, 10, 10, 10);
         panel.add(element12, gbc);
+
+        element12.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                page_container.show(page, "Login");
+                page.revalidate();
+                page.repaint();
+            }
+        });
 
         JTextField fname = new JTextField(""){
             protected void paintComponent(Graphics g){
@@ -149,6 +173,67 @@ public class signup {
         //OnClickEventHelper.setOnClickColor(signup_button, Color.decode("#c2c2c2"), Color.decode("#ffffff"));
         gbc.gridy = 6;
         panel.add(signup_button, gbc);
+
+        signup_button.addActionListener(e -> {
+            String firstname = fname.getText();
+            String lastname = lname.getText();
+            String name = firstname + " " + lastname;
+            String email = email_input.getText();
+            String password = new String(pass_input.getPassword());
+
+            signup_button.setText("Creating account....");
+            signup_button.setEnabled(false);
+
+            SwingWorker<Map<String, Object>, Void> worker = new SwingWorker<Map<String, Object>,Void>() {
+                @Override
+                protected Map<String, Object> doInBackground(){
+                    return userController.signup_user(name, email, password);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        Map<String, Object> res = get();
+
+                        signup_button.setText("Login");
+                        signup_button.setEnabled(true);
+
+                        if(res != null && (Boolean) res.get("state")){
+                            fname.setText("");
+                            lname.setText("");
+                            email_input.setText("");
+                            pass_input.setText("");
+
+                            Map<String, Object> auto_login = userController.login_user(email, password);
+                            if((Boolean)auto_login.get("state")){
+                                JOptionPane.showMessageDialog(panel,
+                                "Welcome " + userController.get_curr_name() + ". Account create successfully",
+                                "Sign up success",
+                                JOptionPane.INFORMATION_MESSAGE
+                                );
+
+                                page_container.show(page, "Browse");
+                                page.revalidate();
+                                page.repaint();
+                            } else{
+                                JOptionPane.showMessageDialog(panel,
+                                "Account create successfully but auto-login failed. Login manually",
+                                "Sign up success",
+                                JOptionPane.INFORMATION_MESSAGE
+                                );
+
+                                page_container.show(page, "Browse");
+                                page.revalidate();
+                                page.repaint();
+                            }
+                        }
+                    } catch (Exception e) {
+                        
+                    }
+                }
+            };
+            worker.execute();
+        });
 
         return panel;
     }
