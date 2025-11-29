@@ -30,6 +30,26 @@ public class user_controller {
         return login_res;
     }
 
+    public Map<String, Object> signup_user(String name, String email, String password){
+        if(name == null || email == null || password == null || 
+            name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()){
+            Map<String, Object> signup_failed = new HashMap<>();
+            signup_failed.put("state", false);
+            signup_failed.put("message", "Enter all fields to continue");
+            return signup_failed;
+        }
+
+        // Email check
+        if(!email.contains("@") || !email.contains(".")){
+            Map<String, Object> signup_failed = new HashMap<>();
+            signup_failed.put("state", false);
+            signup_failed.put("message", "Enter a valid email address");
+            return signup_failed;
+        }
+
+        return customeracc.signup(name.trim(), email.trim(), password);
+    }
+
     public void logout_user(){
         session_Manager.logout();
     }
