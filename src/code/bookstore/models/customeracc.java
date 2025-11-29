@@ -117,14 +117,9 @@ public class customeracc extends extra{
 
             conn.setAutoCommit(false);
 
-            String id_query = "SELECT 'c' || LPAD(nextval('cust_id_seq')::text, 4, '0') AS customer_id";
-            PreparedStatement id_stm = conn.prepareStatement(id_query);
-            ResultSet id_rs = id_stm.executeQuery();
-
             String customerId = null;
-            if(id_rs.next()){
-                customerId = id_rs.getString("customer_id");
-            }
+            customeracc new_customeracc = new customeracc();
+            customerId = new_customeracc.generateId();
 
             if(customerId == null){
                 conn.rollback();
