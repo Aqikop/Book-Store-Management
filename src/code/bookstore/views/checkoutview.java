@@ -10,12 +10,30 @@ import java.awt.*;
 import java.awt.event.*;
 
 import code.bookstore.controllers.checkout_controller;
+import code.bookstore.models.customer;
+import code.bookstore.models.shippingtype;
+import code.bookstore.utils.sessionManager;
 
 public class checkoutview {
     private CardLayout page_container;
     private JPanel page;
     private checkout_controller checkoutController;
-    private JPanel checkoutPanel; // Store the main panel reference
+    private JPanel checkoutPanel;
+    
+    // Form fields
+    private JTextField fname_in;
+    private JTextField lname_in;
+    private JTextField address_in;
+    private JTextField city_in;
+    private JTextField zip_in;
+    private JTextField state_in;
+    private JTextField phone_in;
+    private JTextField cc_num_in;
+    private JComboBox<String> shipping_combo;
+    
+    // Current user and shipping price
+    private Map<String, Object> curr_cus_info;
+    private double curr_ship_price = 4.99;
 
     public checkoutview(CardLayout page_container, JPanel page, checkout_controller controller) {
         this.page_container = page_container;
@@ -25,13 +43,12 @@ public class checkoutview {
 
     public JPanel init_panel(){
         checkoutPanel = new JPanel(new BorderLayout());
-        refreshCheckoutView(); // Initial load
+        refreshCheckoutView();
         return checkoutPanel;
     }
 
-    // Refresh checkout view with new data
     public void refreshCheckoutView(){
-        checkoutPanel.removeAll(); // Clear existing content
+        checkoutPanel.removeAll();
         
         checkoutPanel.setBackground(Color.WHITE);
 
@@ -51,14 +68,9 @@ public class checkoutview {
         JPanel left_side = new JPanel(new BorderLayout());
         left_side.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Get fresh data from controller
         List<Map<String, Object>> checkout_items = checkoutController.get_checkout_items();
         
-        // Add debugging
         System.out.println("Refreshing checkout - Items count: " + checkout_items.size());
-        for(int i = 0; i < checkout_items.size(); i++) {
-            System.out.println("Item " + i + ": " + checkout_items.get(i));
-        }
 
         JPanel review = new JPanel();
         review.setLayout(new BoxLayout(review, BoxLayout.Y_AXIS));
@@ -68,21 +80,18 @@ public class checkoutview {
             BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
         
-        // Handle empty cart vs items
         if(checkout_items.isEmpty()) {
             review.setPreferredSize(new Dimension(500, 200));
             JLabel no_items = new JLabel("No items in checkout");
             no_items.setFont(new Font("Lato", Font.BOLD, 18));
             no_items.setForeground(Color.GRAY);
             no_items.setHorizontalAlignment(JLabel.CENTER);
-            no_items.setVerticalAlignment(JLabel.CENTER);
             review.add(Box.createVerticalGlue());
             review.add(no_items);
             review.add(Box.createVerticalGlue());
         } else {
             review.setPreferredSize(new Dimension(500, 180 * checkout_items.size()));
             
-            // Create book entries from fresh data
             for(int i = 0; i < checkout_items.size(); i++){
                 Map<String, Object> book = checkout_items.get(i);
                 JPanel book_entry = create_book_entry(book);
@@ -116,7 +125,6 @@ public class checkoutview {
 
         left_side.add(scroll_bar, BorderLayout.CENTER);
 
-        // Create order summary with fresh data
         JPanel order_summary = createOrderSummary(checkout_items);
 
         main_content.add(left_side, BorderLayout.CENTER);
@@ -125,7 +133,6 @@ public class checkoutview {
         checkoutPanel.add(header, BorderLayout.NORTH);
         checkoutPanel.add(main_content, BorderLayout.CENTER);
         
-        // Refresh the display
         checkoutPanel.revalidate();
         checkoutPanel.repaint();
     }
@@ -148,13 +155,11 @@ public class checkoutview {
         summary_content.setLayout(new BoxLayout(summary_content, BoxLayout.Y_AXIS));
         summary_content.setOpaque(false);
 
-        // Calculate actual totals
         double subtotal = calculateSubtotal(checkout_items);
-        double shipping = 9.99;
-        double total = subtotal + shipping;
+        double total = subtotal + curr_ship_price;
 
         summary_content.add(price_row("Item (" + checkout_items.size() + "):", "$" + String.format("%.2f", subtotal)));
-        summary_content.add(price_row("Shipping", "$" + String.format("%.2f", shipping)));
+        summary_content.add(price_row("Shipping", "$" + String.format("%.2f", curr_ship_price)));
 
         JSeparator separator = new JSeparator();
         separator.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -190,8 +195,10 @@ public class checkoutview {
         checkout_btn.setBorder(BorderFactory.createEmptyBorder(10 ,15, 10, 15));
         checkout_btn.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e){
-                page_container.show(page, "Receipt");
-                page.revalidate();
+                if(processPayment()) {
+                    page_container.show(page, "Receipt");
+                    page.revalidate();
+                }
             }
         });
 
@@ -200,7 +207,6 @@ public class checkoutview {
         return order_summary;
     }
 
-    // Calculate total price
     private double calculateSubtotal(List<Map<String, Object>> items) {
         double subtotal = 0.0;
         for(Map<String, Object> item : items) {
@@ -209,6 +215,297 @@ public class checkoutview {
             }
         }
         return subtotal;
+    }
+
+    private JPanel payment_info(){
+        JPanel payment_info = new JPanel(new BorderLayout());
+        payment_info.setBackground(Color.WHITE);
+        payment_info.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 3),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+
+        JLabel header = new JLabel("Payment Information");
+        header.setFont(new Font("Lato", Font.BOLD, 15));
+        header.setForeground(Color.BLACK);
+        
+        payment_info.add(header, BorderLayout.NORTH);
+
+        JPanel info_form = new JPanel(new GridBagLayout());
+        info_form.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        // Load current user data
+        loadCurrentUserData();
+        
+        // First Name
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1;
+        JLabel fname = new JLabel("First Name");
+        fname.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(fname, gbc);
+
+        gbc.gridy = 1; gbc.gridwidth = 2;
+        fname_in = new JTextField();
+        fname_in.setPreferredSize(new Dimension(200, 30));
+        fname_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        fname_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(fname_in, gbc);
+
+        // Last Name
+        gbc.gridx = 3; gbc.gridy = 0; gbc.gridwidth = 1;
+        JLabel lname = new JLabel("Last Name");
+        lname.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(lname, gbc);
+
+        gbc.gridy = 1; gbc.gridwidth = 2;
+        lname_in = new JTextField();
+        lname_in.setPreferredSize(new Dimension(200, 30));
+        lname_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        lname_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(lname_in, gbc);
+
+        // Address
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
+        JLabel address = new JLabel("Address");
+        address.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(address, gbc);
+
+        gbc.gridy = 3; gbc.gridwidth = 5;
+        address_in = new JTextField();
+        address_in.setPreferredSize(new Dimension(400, 30));
+        address_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        address_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(address_in, gbc);
+
+        // City
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
+        JLabel city = new JLabel("City");
+        city.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(city, gbc);
+
+        gbc.gridy = 5; gbc.gridwidth = 2;
+        city_in = new JTextField();
+        city_in.setPreferredSize(new Dimension(200, 30));
+        city_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        city_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(city_in, gbc);
+
+        // State
+        gbc.gridx = 3; gbc.gridy = 4; gbc.gridwidth = 1;
+        JLabel state = new JLabel("State");
+        state.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(state, gbc);
+
+        gbc.gridy = 5; gbc.gridwidth = 1;
+        state_in = new JTextField();
+        state_in.setPreferredSize(new Dimension(60, 30));
+        state_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        state_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(state_in, gbc);
+
+        // Zip Code
+        gbc.gridx = 4; gbc.gridy = 4; gbc.gridwidth = 1;
+        JLabel zip = new JLabel("Zip Code");
+        zip.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(zip, gbc);
+
+        gbc.gridy = 5; gbc.gridwidth = 1;
+        zip_in = new JTextField();
+        zip_in.setPreferredSize(new Dimension(100, 30));
+        zip_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        zip_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(zip_in, gbc);
+
+        // Phone Number
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
+        JLabel phone = new JLabel("Phone Number");
+        phone.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(phone, gbc);
+
+        gbc.gridy = 7; gbc.gridwidth = 2;
+        phone_in = new JTextField();
+        phone_in.setPreferredSize(new Dimension(200, 30));
+        phone_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        phone_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(phone_in, gbc);
+
+        // Credit Card Number
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 1;
+        JLabel cc_num = new JLabel("Credit Card Number");
+        cc_num.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(cc_num, gbc);
+
+        gbc.gridy = 9; gbc.gridwidth = 3;
+        cc_num_in = new JTextField();
+        cc_num_in.setPreferredSize(new Dimension(300, 30));
+        cc_num_in.setFont(new Font("Lato", Font.PLAIN, 14));
+        cc_num_in.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            ));
+        info_form.add(cc_num_in, gbc);
+
+        // Shipping Types
+        gbc.gridx = 3; gbc.gridy = 6; gbc.gridwidth = 1;
+        JLabel shipping_types = new JLabel("Shipping Types");
+        shipping_types.setFont(new Font("Lato", Font.BOLD, 13));
+        info_form.add(shipping_types, gbc);
+
+        gbc.gridy = 7; gbc.gridwidth = 2;
+        Map<String, Double> shippingOptions = shippingtype.get_shipping_types();
+        String[] shipTypes = shippingOptions.keySet().toArray(new String[0]);
+        
+        if(shipTypes.length == 0) {
+            shipTypes = new String[]{"Standard", "Express"};
+        }
+
+        shipping_combo = new JComboBox<>(shipTypes);
+        shipping_combo.setFont(new Font("Lato", Font.PLAIN, 13));
+        shipping_combo.addActionListener(e -> {
+            String selectedType = (String) shipping_combo.getSelectedItem();
+            if(selectedType != null) {
+                if(shippingOptions.containsKey(selectedType)) {
+                    curr_ship_price = shippingOptions.get(selectedType);
+                } else {
+                    curr_ship_price = 4.99;
+                }
+                System.out.println("Selected shipping: " + selectedType + " - Price: $" + curr_ship_price);
+                refreshCheckoutView();
+            }
+        });
+        info_form.add(shipping_combo, gbc);
+
+        populateFormFields();
+
+        payment_info.add(info_form, BorderLayout.CENTER);
+        return payment_info;
+    }
+
+    // Load current user data
+    private void loadCurrentUserData() {
+        sessionManager session = sessionManager.get_inst();
+        
+        if(session.is_user_login()) {
+            String userEmail = session.get_curr_user_email();
+            
+            if(userEmail != null) {
+                curr_cus_info = customer.find_info_by_email(userEmail);
+            }
+        }
+    }
+
+    private void populateFormFields() {
+        if(curr_cus_info != null && !curr_cus_info.isEmpty()) {
+            // Split full name
+            String fullName = (String) curr_cus_info.get("customerName");
+            if(fullName != null && !fullName.isEmpty()) {
+                String[] nameParts = fullName.split(" ", 2);
+                fname_in.setText(nameParts.length > 0 ? nameParts[0] : "");
+                lname_in.setText(nameParts.length > 1 ? nameParts[1] : "");
+            }
+            
+            if(curr_cus_info.get("address") != null) {
+                address_in.setText((String) curr_cus_info.get("address"));
+            }
+            if(curr_cus_info.get("city") != null) {
+                city_in.setText((String) curr_cus_info.get("city"));
+            }
+            if(curr_cus_info.get("zip") != null) {
+                zip_in.setText((String) curr_cus_info.get("zip"));
+            }
+            if(curr_cus_info.get("state") != null) {
+                state_in.setText((String) curr_cus_info.get("state"));
+            }
+            if(curr_cus_info.get("phoneNumber") != null) {
+                phone_in.setText((String) curr_cus_info.get("phoneNumber"));
+            }
+            if(curr_cus_info.get("creditCard") != null) {
+                cc_num_in.setText((String) curr_cus_info.get("creditCard"));
+            }
+            
+        } else {
+
+        }
+    }
+
+    private boolean processPayment() {
+        try {
+            sessionManager session = sessionManager.get_inst();
+            
+            if(!session.is_user_login()) {
+                JOptionPane.showMessageDialog(checkoutPanel, 
+                    "Please login to complete checkout.", "Login Required", 
+                    JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            String firstName = fname_in.getText().trim();
+            String lastName = lname_in.getText().trim();
+            String address = address_in.getText().trim();
+            String city = city_in.getText().trim();
+            String zip = zip_in.getText().trim();
+            String state = state_in.getText().trim();
+            String phone = phone_in.getText().trim();
+            String creditCard = cc_num_in.getText().trim();
+
+            // Validate required fields
+            if(firstName.isEmpty() || lastName.isEmpty() || address.isEmpty() || 
+               city.isEmpty() || zip.isEmpty() || state.isEmpty() ||
+               phone.isEmpty() || creditCard.isEmpty()) {
+                JOptionPane.showMessageDialog(checkoutPanel, 
+                    "Please fill in all fields.", "Validation Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            // Update customer information
+            String customerId = session.get_curr_user_id();
+            boolean updateSuccess = customer.update_cus_info(customerId, firstName, lastName, 
+                address, city, zip, state, phone, creditCard);
+            
+            if(updateSuccess) {
+                JOptionPane.showMessageDialog(checkoutPanel, 
+                    "Payment processed successfully!", 
+                    "Payment Successful", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            } else {
+                JOptionPane.showMessageDialog(checkoutPanel, 
+                    "Error processing payment. Please try again.", "Payment Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(checkoutPanel, 
+                "Error processing payment: " + e.getMessage(), "Payment Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
     }
 
     private JPanel price_row(String row, String price){
@@ -229,161 +526,6 @@ public class checkoutview {
         price_row.add(row_price, BorderLayout.EAST);
 
         return price_row;
-    }
-
-    private JPanel payment_info(){
-        JPanel payment_info = new JPanel(new BorderLayout());
-        payment_info.setBackground(Color.WHITE);
-        payment_info.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 3),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-
-        JLabel header = new JLabel("Payment Infomation");
-        header.setFont(new Font("Lato", Font.BOLD, 15));
-        header.setForeground(Color.BLACK);
-        
-        payment_info.add(header, BorderLayout.NORTH);
-
-        JPanel info_form = new JPanel(new GridBagLayout());
-        info_form.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        
-        JLabel fname = new JLabel("First Name");
-        fname.setFont(new Font("Lato", Font.BOLD, 13));
-        info_form.add(fname, gbc);
-
-        JTextField fname_in = new JTextField();
-        fname_in.setPreferredSize(new Dimension(300, 30));
-        fname_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        fname_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        info_form.add(fname_in, gbc);
-
-        JLabel lname = new JLabel("Last Name");
-        lname.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 5;
-        gbc.gridy = 0;
-        info_form.add(lname, gbc);
-
-        JTextField lname_in = new JTextField();
-        lname_in.setPreferredSize(new Dimension(300, 30));
-        lname_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        lname_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        info_form.add(lname_in, gbc);
-
-        JLabel address = new JLabel("Adress");
-        address.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 0; 
-        gbc.gridy = 2;
-        info_form.add(address, gbc);
-
-        JTextField address_in = new JTextField();
-        address_in.setPreferredSize(new Dimension(400, 30));
-        address_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        address_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 3;
-        gbc.gridwidth = 10;
-        info_form.add(address_in, gbc);
-        
-        JLabel city = new JLabel("City");
-        city.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 0; 
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        info_form.add(city, gbc);
-
-        JTextField city_in = new JTextField();
-        city_in.setPreferredSize(new Dimension(300, 30));
-        city_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        city_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        info_form.add(city_in, gbc);
-
-        JLabel zip = new JLabel("Zip Code");
-        zip.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 5; 
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        info_form.add(zip, gbc);
-
-        JTextField zip_in = new JTextField();
-        zip_in.setPreferredSize(new Dimension(300, 30));
-        zip_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        zip_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        info_form.add(zip_in, gbc);
-
-        JLabel cc_num = new JLabel("Credit Card Number");
-        cc_num.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 0; 
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        info_form.add(cc_num, gbc);
-
-        JTextField cc_num_in = new JTextField();
-        cc_num_in.setPreferredSize(new Dimension(300, 30));
-        cc_num_in.setFont(new Font("Lato", Font.PLAIN, 14));
-        cc_num_in.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 2),
-                BorderFactory.createEmptyBorder(5, 15, 5, 15)
-            ));
-        gbc.gridy = 7;
-        gbc.gridwidth = 5;
-        info_form.add(cc_num_in, gbc);
-
-        JLabel shipping_types = new JLabel("Shipping Types");
-        shipping_types.setFont(new Font("Lato", Font.BOLD, 13));
-        gbc.gridx = 5; 
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        info_form.add(shipping_types, gbc);
-
-        String[] ship_types = {"Standard", "Express"};
-        JPanel shipping_types_panel = new JPanel(new BorderLayout());
-        shipping_types_panel.setOpaque(false);
-        gbc.gridx = 5; 
-        gbc.gridy = 7;
-        gbc.gridwidth = 2;
-
-        JComboBox<String> cb = new JComboBox<>(ship_types);
-        cb.setFont(new Font("Lato", Font.PLAIN, 13));
-        cb.setOpaque(false);
-        cb.addActionListener(e ->{
-            String types = (String) cb.getSelectedItem();
-            System.out.println("Choice: " + types);
-        });
-        shipping_types_panel.add(cb, BorderLayout.WEST);
-        info_form.add(shipping_types_panel, gbc);
-
-        payment_info.add(info_form, BorderLayout.WEST);
-
-        return payment_info;
     }
 
     private JPanel create_book_entry(Map<String, Object> book){
@@ -410,7 +552,6 @@ public class checkoutview {
         }
         book_cover_label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
 
-        // Book info panel
         JPanel book_info = new JPanel();
         book_info.setLayout(new BoxLayout(book_info, BoxLayout.Y_AXIS));
         book_info.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
@@ -429,7 +570,6 @@ public class checkoutview {
         book_price.setForeground(Color.decode("#26ed5b"));
         book_price.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Quantity display
         JPanel quantity_display = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         quantity_display.setAlignmentX(Component.LEFT_ALIGNMENT);
         quantity_display.setOpaque(false);
