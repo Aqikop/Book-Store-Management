@@ -2,8 +2,6 @@ package code.bookstore.controllers;
 
 import java.util.*;
 
-import code.bookstore.models.publisher;
-
 public class checkout_controller {
     private Map<String, Object> buy_now_item;
     private List<Map<String, Object>> cart_items;
