@@ -26,6 +26,7 @@ public class browseview {
 
     private Map<String, Object> buy_now_item; // For "buy now"
     private List<Map<String, Object>> cart_items; // For "add to cart"
+    private checkoutview checkoutViewRef; // Add reference to checkout view
 
     public browseview(){
         this.checkoutController = new checkout_controller();
@@ -39,6 +40,14 @@ public class browseview {
         this.checkoutController = new checkout_controller();
         this.buy_now_item = new HashMap<>();
         this.cart_items = new ArrayList<>();
+    }
+
+    public checkout_controller getCheckoutController(){
+        return checkoutController;
+    }
+
+    public void setCheckoutView(checkoutview checkoutView) {
+        this.checkoutViewRef = checkoutView;
     }
 
     public JPanel init_panel(){
@@ -280,6 +289,8 @@ public class browseview {
             public void mouseClicked(MouseEvent e){
                 int qty = (Integer) quantity_scoller.getValue();
 
+                cart_items.clear();
+
                 buy_now_item.clear();
                 buy_now_item.put("bookId", book.get("bookId"));
                 buy_now_item.put("bookName", book.get("bookName"));
@@ -289,6 +300,20 @@ public class browseview {
                 buy_now_item.put("quantity", qty);
                 buy_now_item.put("totalPrice", (Double) book.get("price")*qty);
 
+                System.out.println("Item: " + buy_now_item);
+
+                checkoutController.set_buy_now_item(buy_now_item);
+                checkoutController.set_cart_items(new ArrayList<>());
+
+                // Refresh checkout view before showing it
+                if(checkoutViewRef != null) {
+                    checkoutViewRef.refreshCheckoutView();
+                }
+
+                if(page_container != null && page != null){
+                    page_container.show(page, "Cart");
+                    page.revalidate();
+                }
             }
         });
 
@@ -322,6 +347,18 @@ public class browseview {
                     cart_items.add(item_cart);
                 }
                 
+                checkoutController.set_buy_now_item(new HashMap<>());
+                checkoutController.set_cart_items(cart_items);
+
+                // Refresh checkout view when items added to cart
+                if(checkoutViewRef != null) {
+                    checkoutViewRef.refreshCheckoutView();
+                }
+
+                JOptionPane.showMessageDialog(null, 
+                    "Added to cart: " + book.get("bookName") + 
+                    "\nCart items: " + cart_items.size()
+                );
             }
         });
 

@@ -3,23 +3,37 @@ package code.bookstore.views;
 import javax.swing.*;
 import java.awt.image.*;
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import javax.imageio.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import code.bookstore.controllers.checkout_controller;
+
 public class checkoutview {
-    // Test
     private CardLayout page_container;
     private JPanel page;
+    private checkout_controller checkoutController;
+    private JPanel checkoutPanel; // Store the main panel reference
 
-    public checkoutview(CardLayout page_container, JPanel page) {
+    public checkoutview(CardLayout page_container, JPanel page, checkout_controller controller) {
         this.page_container = page_container;
         this.page = page;
+        this.checkoutController = controller;
     }
 
     public JPanel init_panel(){
-        JPanel checkout = new JPanel(new BorderLayout());
-        checkout.setBackground(Color.WHITE);
+        checkoutPanel = new JPanel(new BorderLayout());
+        refreshCheckoutView(); // Initial load
+        return checkoutPanel;
+    }
+
+    // Refresh checkout view with new data
+    public void refreshCheckoutView(){
+        checkoutPanel.removeAll(); // Clear existing content
+        
+        checkoutPanel.setBackground(Color.WHITE);
 
         JPanel header = new JPanel(new BorderLayout());
         header.setBorder(BorderFactory.createCompoundBorder(
@@ -37,11 +51,14 @@ public class checkoutview {
         JPanel left_side = new JPanel(new BorderLayout());
         left_side.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Sample data 
-        String[] titles = {"The Heart-Shaped Tin", "To Kill a Mockingbird", "Abc"};
-        String[] authors = {"Bee Wilson", "Harper Lee", "Bac"};
-        String[] publishers = {"Penguin Books", "Harper Perennial"};
-        double[] prices = {19.99, 15.99, 99.99};
+        // Get fresh data from controller
+        List<Map<String, Object>> checkout_items = checkoutController.get_checkout_items();
+        
+        // Add debugging
+        System.out.println("Refreshing checkout - Items count: " + checkout_items.size());
+        for(int i = 0; i < checkout_items.size(); i++) {
+            System.out.println("Item " + i + ": " + checkout_items.get(i));
+        }
 
         JPanel review = new JPanel();
         review.setLayout(new BoxLayout(review, BoxLayout.Y_AXIS));
@@ -50,87 +67,30 @@ public class checkoutview {
             BorderFactory.createLineBorder(Color.decode("#e0e0e0"), 3),
             BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
-        review.setPreferredSize(new Dimension(500, 180 * titles.length));
+        
+        // Handle empty cart vs items
+        if(checkout_items.isEmpty()) {
+            review.setPreferredSize(new Dimension(500, 200));
+            JLabel no_items = new JLabel("No items in checkout");
+            no_items.setFont(new Font("Lato", Font.BOLD, 18));
+            no_items.setForeground(Color.GRAY);
+            no_items.setHorizontalAlignment(JLabel.CENTER);
+            no_items.setVerticalAlignment(JLabel.CENTER);
+            review.add(Box.createVerticalGlue());
+            review.add(no_items);
+            review.add(Box.createVerticalGlue());
+        } else {
+            review.setPreferredSize(new Dimension(500, 180 * checkout_items.size()));
+            
+            // Create book entries from fresh data
+            for(int i = 0; i < checkout_items.size(); i++){
+                Map<String, Object> book = checkout_items.get(i);
+                JPanel book_entry = create_book_entry(book);
+                review.add(book_entry);
 
-
-        // Iterate through search result (i < n)
-        for(int i = 0; i < titles.length; i++){
-            JPanel book_entry = new JPanel(new BorderLayout());
-            book_entry.setBackground(Color.decode("#ffffff"));
-            book_entry.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#e0e0e0")),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-            ));
-            book_entry.setMaximumSize(new Dimension(Integer.MAX_VALUE, 170));
-            book_entry.setPreferredSize(new Dimension(0, 170));
-
-            JLabel book_cover_label = new JLabel();
-            try{
-                BufferedImage book_cover = ImageIO.read(new File("src\\resources\\images\\"));
-                Image scaled = book_cover.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                book_cover_label.setIcon(new ImageIcon(scaled));
-            } catch(Exception e){
-                book_cover_label.setText("No img available");
-                book_cover_label.setPreferredSize(new Dimension(150, 110));
-                book_cover_label.setHorizontalAlignment(JLabel.CENTER);
-                book_cover_label.setVerticalAlignment(JLabel.CENTER);
-                book_cover_label.setOpaque(false);
-            }
-            book_cover_label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
-
-            // Book info panel
-            JPanel book_info = new JPanel();
-            book_info.setLayout(new BoxLayout(book_info, BoxLayout.Y_AXIS));
-            book_info.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-            book_info.setOpaque(false);
-
-            JLabel book_title = new JLabel(titles[i]);
-            book_title.setFont(new Font("Lato", Font.PLAIN, 25));
-            book_title.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-            JLabel book_author = new JLabel("by " + authors[i]);
-            book_author.setFont(new Font("Lato", Font.ITALIC, 14));
-            book_author.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-            JLabel book_price = new JLabel("$" + String.format("%.2f", prices[i]));
-            book_price.setFont(new Font("Lato", Font.BOLD, 25));
-            book_price.setForeground(Color.decode("#26ed5b"));
-            book_price.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-            // Quantity selection
-            JPanel quantity_choose = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            quantity_choose.setAlignmentX(Component.LEFT_ALIGNMENT);
-            quantity_choose.setOpaque(false);
-
-            JLabel quantity_text = new JLabel("Quantity:");
-            quantity_text.setFont(new Font("Lato", Font.PLAIN, 14));
-
-            JSpinner quantity_scoller = new JSpinner(new SpinnerNumberModel(1, 1, 99 ,1));
-            quantity_scoller.setFont(new Font("Lato", Font.PLAIN, 14));
-            quantity_scoller.setPreferredSize(new Dimension(60, 30));
-
-            JLabel update_price = new JLabel("Update");
-            update_price.setFont(new Font("Lato", Font.PLAIN, 14));
-
-            quantity_choose.add(quantity_text);
-            quantity_choose.add(Box.createRigidArea(new Dimension(2, 0)));
-            quantity_choose.add(quantity_scoller);
-            quantity_choose.add(Box.createRigidArea(new Dimension(1, 0)));
-            quantity_choose.add(update_price);
-
-            book_info.add(book_title);
-            book_info.add(book_author);
-            book_info.add(book_price);
-            book_info.add(quantity_choose);
-
-            book_entry.add(book_cover_label, BorderLayout.WEST);
-            book_entry.add(book_info, BorderLayout.CENTER);
-
-
-            review.add(book_entry);
-
-            if(i < titles.length - 1){
-                review.add(Box.createRigidArea(new Dimension(0, 10)));
+                if(i < checkout_items.size() - 1){
+                    review.add(Box.createRigidArea(new Dimension(0, 10)));
+                }
             }
         }
         
@@ -156,6 +116,21 @@ public class checkoutview {
 
         left_side.add(scroll_bar, BorderLayout.CENTER);
 
+        // Create order summary with fresh data
+        JPanel order_summary = createOrderSummary(checkout_items);
+
+        main_content.add(left_side, BorderLayout.CENTER);
+        main_content.add(order_summary, BorderLayout.EAST);
+
+        checkoutPanel.add(header, BorderLayout.NORTH);
+        checkoutPanel.add(main_content, BorderLayout.CENTER);
+        
+        // Refresh the display
+        checkoutPanel.revalidate();
+        checkoutPanel.repaint();
+    }
+
+    private JPanel createOrderSummary(List<Map<String, Object>> checkout_items) {
         JPanel order_summary = new JPanel(new BorderLayout());
         order_summary.setPreferredSize(new Dimension(280, 0));
         order_summary.setBackground(Color.WHITE);
@@ -173,8 +148,13 @@ public class checkoutview {
         summary_content.setLayout(new BoxLayout(summary_content, BoxLayout.Y_AXIS));
         summary_content.setOpaque(false);
 
-        summary_content.add(price_row("Item (2):", "$100"));
-        summary_content.add(price_row("Shipping", "$9.99"));
+        // Calculate actual totals
+        double subtotal = calculateSubtotal(checkout_items);
+        double shipping = 9.99;
+        double total = subtotal + shipping;
+
+        summary_content.add(price_row("Item (" + checkout_items.size() + "):", "$" + String.format("%.2f", subtotal)));
+        summary_content.add(price_row("Shipping", "$" + String.format("%.2f", shipping)));
 
         JSeparator separator = new JSeparator();
         separator.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -186,21 +166,21 @@ public class checkoutview {
         total_row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         total_row.setBorder(BorderFactory.createEmptyBorder(5, 0, 15, 0));
 
-        JLabel total = new JLabel("Total:");
-        total.setFont(new Font("Lato", Font.PLAIN, 15));
-        total.setForeground(Color.BLACK);
+        JLabel total_label = new JLabel("Total:");
+        total_label.setFont(new Font("Lato", Font.PLAIN, 15));
+        total_label.setForeground(Color.BLACK);
 
-        JLabel total_price = new JLabel("$1000");
+        JLabel total_price = new JLabel("$" + String.format("%.2f", total));
         total_price.setFont(new Font("Lato", Font.BOLD, 15));
         total_price.setForeground(Color.decode("#e74c3c"));
 
-        total_row.add(total, BorderLayout.WEST);
+        total_row.add(total_label, BorderLayout.WEST);
         total_row.add(total_price, BorderLayout.EAST);
         summary_content.add(total_row);
 
         order_summary.add(summary_content, BorderLayout.CENTER);
 
-        JButton checkout_btn = new JButton("Continue");
+        JButton checkout_btn = new JButton("Complete Payment");
         checkout_btn.setMaximumSize(new Dimension(240, 40));
         checkout_btn.setBackground(Color.decode("#0651c9"));
         checkout_btn.setForeground(Color.WHITE);
@@ -210,20 +190,25 @@ public class checkoutview {
         checkout_btn.setBorder(BorderFactory.createEmptyBorder(10 ,15, 10, 15));
         checkout_btn.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e){
-                // page_container.show(page, "Info");
-                // page.revalidate();
+                page_container.show(page, "Receipt");
+                page.revalidate();
             }
         });
 
         order_summary.add(checkout_btn, BorderLayout.SOUTH);
+        
+        return order_summary;
+    }
 
-        main_content.add(left_side, BorderLayout.CENTER);
-        main_content.add(order_summary, BorderLayout.EAST);
-
-        checkout.add(header, BorderLayout.NORTH);
-        checkout.add(main_content, BorderLayout.CENTER);
-
-        return checkout;
+    // Calculate total price
+    private double calculateSubtotal(List<Map<String, Object>> items) {
+        double subtotal = 0.0;
+        for(Map<String, Object> item : items) {
+            if(item.get("totalPrice") != null) {
+                subtotal += (Double) item.get("totalPrice");
+            }
+        }
+        return subtotal;
     }
 
     private JPanel price_row(String row, String price){
@@ -396,9 +381,71 @@ public class checkoutview {
         shipping_types_panel.add(cb, BorderLayout.WEST);
         info_form.add(shipping_types_panel, gbc);
 
-
         payment_info.add(info_form, BorderLayout.WEST);
 
         return payment_info;
+    }
+
+    private JPanel create_book_entry(Map<String, Object> book){
+        JPanel book_entry = new JPanel(new BorderLayout());
+        book_entry.setBackground(Color.decode("#ffffff"));
+        book_entry.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#e0e0e0")),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        book_entry.setMaximumSize(new Dimension(Integer.MAX_VALUE, 170));
+        book_entry.setPreferredSize(new Dimension(0, 170));
+
+        JLabel book_cover_label = new JLabel();
+        try{
+            BufferedImage book_cover = ImageIO.read(new File("src\\resources\\images\\"));
+            Image scaled = book_cover.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+            book_cover_label.setIcon(new ImageIcon(scaled));
+        } catch(Exception e){
+            book_cover_label.setText("No img available");
+            book_cover_label.setPreferredSize(new Dimension(150, 110));
+            book_cover_label.setHorizontalAlignment(JLabel.CENTER);
+            book_cover_label.setVerticalAlignment(JLabel.CENTER);
+            book_cover_label.setOpaque(false);
+        }
+        book_cover_label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 20));
+
+        // Book info panel
+        JPanel book_info = new JPanel();
+        book_info.setLayout(new BoxLayout(book_info, BoxLayout.Y_AXIS));
+        book_info.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        book_info.setOpaque(false);
+
+        JLabel book_title = new JLabel((String) book.get("bookName"));
+        book_title.setFont(new Font("Lato", Font.PLAIN, 25));
+        book_title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel book_author = new JLabel("by " + (String) book.get("authorName"));
+        book_author.setFont(new Font("Lato", Font.ITALIC, 14));
+        book_author.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel book_price = new JLabel("$" + String.format("%.2f", (Double) book.get("totalPrice")));
+        book_price.setFont(new Font("Lato", Font.BOLD, 25));
+        book_price.setForeground(Color.decode("#26ed5b"));
+        book_price.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Quantity display
+        JPanel quantity_display = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        quantity_display.setAlignmentX(Component.LEFT_ALIGNMENT);
+        quantity_display.setOpaque(false);
+
+        JLabel quantity_text = new JLabel("Quantity: " + book.get("quantity"));
+        quantity_text.setFont(new Font("Lato", Font.PLAIN, 14));
+        quantity_display.add(quantity_text);
+
+        book_info.add(book_title);
+        book_info.add(book_author);
+        book_info.add(book_price);
+        book_info.add(quantity_display);
+
+        book_entry.add(book_cover_label, BorderLayout.WEST);
+        book_entry.add(book_info, BorderLayout.CENTER);
+
+        return book_entry;
     }
 }
