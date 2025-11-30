@@ -14,14 +14,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import code.bookstore.models.books;
 import code.bookstore.controllers.checkout_controller;
 import code.bookstore.controllers.user_controller;
+import code.bookstore.controllers.book_controller;
 
 public class browseview {
     String output_search;
     private checkout_controller checkoutController;
     private user_controller userController;
+    private book_controller bookController;
 
     private CardLayout page_container;
     private JPanel page;
@@ -41,6 +42,7 @@ public class browseview {
         this.page = page;
         this.userController = new user_controller();
         this.checkoutController = new checkout_controller();
+        this.bookController = new book_controller();
         this.buy_now_item = new HashMap<>();
         this.cart_items = new ArrayList<>();
     }
@@ -188,7 +190,7 @@ public class browseview {
 
     public List<Map<String, Object>> get_results(String text){
         try{
-            return books.search_books(text.trim());
+            return bookController.search_by_name(text.trim());
         } catch(Exception e){
             e.printStackTrace();
             return new ArrayList<>();
