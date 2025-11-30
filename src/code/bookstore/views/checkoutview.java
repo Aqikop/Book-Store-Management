@@ -12,6 +12,8 @@ import java.awt.event.*;
 import code.bookstore.controllers.checkout_controller;
 import code.bookstore.models.customer;
 import code.bookstore.models.shippingtype;
+import code.bookstore.models.shoppingcart;
+import code.bookstore.models.order;
 import code.bookstore.utils.sessionManager;
 
 public class checkoutview {
@@ -196,8 +198,13 @@ public class checkoutview {
         checkout_btn.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e){
                 if(processPayment()) {
-                    page_container.show(page, "Receipt");
-                    page.revalidate();
+                    JOptionPane.showMessageDialog(checkoutPanel,
+                    "Transaction Complete! Thanks for shopping us.",
+                    "Success",
+                    JOptionPane.PLAIN_MESSAGE
+                    );
+                page_container.show(page, "Home");
+                page.revalidate();
                 }
             }
         });
@@ -472,7 +479,7 @@ public class checkoutview {
             String phone = phone_in.getText().trim();
             String creditCard = cc_num_in.getText().trim();
 
-            // Validate required fields
+            // Validate fields
             if(firstName.isEmpty() || lastName.isEmpty() || address.isEmpty() || 
                city.isEmpty() || zip.isEmpty() || state.isEmpty() ||
                phone.isEmpty() || creditCard.isEmpty()) {
@@ -482,22 +489,57 @@ public class checkoutview {
                 return false;
             }
 
-            // Update customer information
+            //Get checkout items
+            List<Map<String, Object>> checkout_items = checkoutController.get_checkout_items();
+            if(checkout_items.isEmpty()){
+                JOptionPane.showMessageDialog(checkoutPanel,
+                    "No items to checkout", 
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            // Update customer info
             String customerId = session.get_curr_user_id();
             boolean updateSuccess = customer.update_cus_info(customerId, firstName, lastName, 
                 address, city, zip, state, phone, creditCard);
             
-            if(updateSuccess) {
+            if(!updateSuccess) {
                 JOptionPane.showMessageDialog(checkoutPanel, 
-                    "Payment processed successfully!", 
-                    "Payment Successful", JOptionPane.INFORMATION_MESSAGE);
-                return true;
-            } else {
-                JOptionPane.showMessageDialog(checkoutPanel, 
-                    "Error processing payment. Please try again.", "Payment Error", 
+                    "Payment processed failed!", 
+                    "Payment Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            int shopping_cart_id = shoppingcart.save_checkout_items(checkout_items);
+            if(shopping_cart_id == 0){
+                JOptionPane.showMessageDialog(checkoutPanel,
+                    "Error saving shopping cart",
+                    "Error",
                     JOptionPane.ERROR_MESSAGE);
                 return false;
             }
+
+            // Create order
+            String selectedShipping = (String) shipping_combo.getSelectedItem();
+            int orderId = order.create_order(customerId, selectedShipping, shopping_cart_id);
+            
+            if(orderId == 0) {
+                JOptionPane.showMessageDialog(checkoutPanel, 
+                    "Error creating order.", "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            // Store order ID for receipt view
+            session.set_order_id(orderId);
+            
+            JOptionPane.showMessageDialog(checkoutPanel, 
+                "Payment processed successfully!\nOrder #" + orderId + " created.", 
+                "Payment Successful", JOptionPane.INFORMATION_MESSAGE);
+            
+            return true;
+            
 
         } catch(Exception e) {
             e.printStackTrace();
