@@ -27,7 +27,7 @@ public class author extends extra{
         Connection conn = newconn.connect();
 
         String new_id = null;
-        String query = "SELECT 'A' || LPAD(nextval('auth_id_seq')::text, 4, '0') AS auth_id";
+        String query = "SELECT 'A' || LPAD(nextval('auth_id_seq')::text, 4, '0') AS author_id";
 
         try {
             PreparedStatement stm = conn.prepareStatement(query);
@@ -76,11 +76,38 @@ public class author extends extra{
             else{ 
                 conn.close();
                 author new_author = new author(); 
-                return new_author.generateId();
+                String new_id = new_author.generateId();
+                
+                if(new_id != null){
+                    boolean added = add_author(new_id, authorName);
+                    if(added){
+                        return new_id;
+                    }
+                }
+                return null;
             }
         } catch(SQLException e){
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean add_author(String authorId, String authorName){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
+
+        String query = "INSERT INTO author (author_id, author_name) VALUES (?, ?)";
+        try {
+            PreparedStatement stm = conn.prepareStatement(query);
+            stm.setString(1, authorId);
+            stm.setString(2, authorName);
+            int rs = stm.executeUpdate();
+
+            conn.close();
+            return rs > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

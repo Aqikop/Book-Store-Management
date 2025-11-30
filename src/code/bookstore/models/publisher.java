@@ -75,12 +75,38 @@ public class publisher extends extra{
             }else{
                 conn.close();
                 publisher new_publisher = new publisher();
-                return new_publisher.generateId();
+                String new_id = new_publisher.generateId();
+                if(new_id != null){
+                    boolean added = add_publisher(new_id, publisherName);
+                    if(added){
+                        return new_id;
+                    }
+                }
+                return null;
             }
             
         } catch(SQLException e){
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean add_publisher(String publisherId, String publisherName){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
+
+        String query = "INSERT INTO publisher (publisher_id, publisher_name) VALUES (?, ?)";
+        try {
+            PreparedStatement stm = conn.prepareStatement(query);
+            stm.setString(1, publisherId);
+            stm.setString(2, publisherName);
+            int rs = stm.executeUpdate();
+
+            conn.close();
+            return rs > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
