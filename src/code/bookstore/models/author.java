@@ -1,6 +1,13 @@
 package code.bookstore.models;
 
-public class author{
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import code.bookstore.utils.DbConnect;
+
+public class author extends extra{
     private String authorId;
     private String authorName;
     
@@ -14,7 +21,30 @@ public class author{
         this.authorName = authorName;
     }
 
-    public void setauthorId(String authorId){
+    @Override
+    public String generateId(){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
+
+        String new_id = null;
+        String query = "SELECT 'A' || LPAD(nextval('auth_id_seq')::text, 4, '0') AS auth_id";
+
+        try {
+            PreparedStatement stm = conn.prepareStatement(query);
+            ResultSet rs = stm.executeQuery();
+
+            if(rs.next()){
+                new_id = rs.getString("author_id");
+            }
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new_id;
+    }
+
+    public void setId(String authorId){
         this.authorId = authorId;
     }
 
@@ -27,5 +57,30 @@ public class author{
                 "authorId:" + authorId + '\'' +
                 ", authorName:" + authorName + 
                 "}";
+    }
+
+    public static String get_id_by_name(String authorName){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
+
+        String query = "SELECT author_id FROM author WHERE LOWER(author_name) = LOWER(?)";
+        try(PreparedStatement stm = conn.prepareStatement(query)){
+            stm.setString(1, authorName);
+            ResultSet rs = stm.executeQuery();
+            
+            if(rs.next()){
+                String authorId = rs.getString("author_id");
+                conn.close();
+                return authorId;
+            }
+            else{ 
+                conn.close();
+                author new_author = new author(); 
+                return new_author.generateId();
+            }
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return null;
     }
 }

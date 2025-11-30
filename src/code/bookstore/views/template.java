@@ -4,11 +4,16 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import code.bookstore.controllers.user_controller;
+
 public class template extends JFrame{
     CardLayout page_container;
     JPanel page;
+    user_controller userController;
+    checkoutview checkoutView; // Add reference to checkout view
 
     public template(){
+        this.userController = new user_controller();
         init_frame();
         init_navBar();
         init_pages();
@@ -63,8 +68,9 @@ public class template extends JFrame{
         nav_bar.setOpaque(false);
         nav_bar.add(nav_items("Browse"));
         nav_bar.add(nav_items("Cart"));
+        nav_bar.add(nav_items("Manage"));
         nav_bar.add(nav_items("Login"));
-        nav_bar.add(nav_items("Sign up"));
+        nav_bar.add(nav_items("Logout"));
 
         header.add(nav_bar, BorderLayout.EAST);
     }
@@ -82,22 +88,29 @@ public class template extends JFrame{
         page.add(home_view, "Home");
 
         // Init browse page view
-        browseview browse = new browseview();
+        browseview browse = new browseview(page_container, page);
         JPanel browse_view = browse.init_panel();
         page.add(browse_view, "Browse");
 
         //Init checkout page view
-        checkoutview checkout = new checkoutview(page_container, page);
-        JPanel checkout_view = checkout.init_panel();
+        checkoutView = new checkoutview(page_container, page, browse.getCheckoutController());
+        JPanel checkout_view = checkoutView.init_panel();
         page.add(checkout_view, "Cart");
 
-        signup signup = new signup();
+        // Link the views so browse can refresh checkout
+        browse.setCheckoutView(checkoutView);
+
+        signup signup = new signup(page_container, page);
         JPanel signup_view = signup.init_panel();
         page.add(signup_view, "Signup");
 
-        login login = new login();
+        login login = new login(page_container, page);
         JPanel login_view = login.init_panel();
         page.add(login_view, "Login");
+
+        managebooksview manage = new managebooksview(page_container, page);
+        JPanel manage_view = manage.init_panel();
+        page.add(manage_view, "Manage");
 
         // Always shows homepage
         page_container.show(page, "Home");
@@ -117,9 +130,21 @@ public class template extends JFrame{
                         page.revalidate();
                         break;
                     case "Cart":
-                        page_container.show(page, "Cart");
-                        page.revalidate();
-                        break;
+                        // Refresh checkout to show items
+                        if(checkoutView != null) {
+                            checkoutView.refreshCheckoutView();
+                        }
+                        if(!userController.is_logged_in()){
+                            JOptionPane.showMessageDialog(null,
+                            "Please login or signup before continue to checkout"
+                            );
+                            break;
+                        }else{
+                            page_container.show(page, "Cart");
+                            page.revalidate();
+                            break;
+                        }
+                        
                     case "Login":
                         page_container.show(page, "Login");
                         page.revalidate();
@@ -127,7 +152,30 @@ public class template extends JFrame{
                     case "Sign up":
                         page_container.show(page, "Signup");
                         page.revalidate();
-                        break;  
+                        break; 
+                    case "Logout":
+                        if(userController.is_logged_in()){
+                            int yes = JOptionPane.showConfirmDialog(
+                            template.this,
+                            "Do you want to log out?",
+                            "Confirm logout ",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+
+                            if(yes == JOptionPane.YES_OPTION){
+                                userController.logout_user();
+
+                                page_container.show(page, "Home");
+                                page.revalidate();
+                                break;
+                            }
+                        } else{
+                            JOptionPane.showMessageDialog(template.this, "Please login first to logout");
+                            break;
+                        }
+                    case "Manage":
+                        page_container.show(page, "Manage");
+                        page.revalidate();
                     default:
                         break;
                 }

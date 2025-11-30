@@ -29,8 +29,26 @@ public class books extends extra{
     }
 
     @Override
-    public void setId(){
+    public String generateId(){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
 
+        String new_id = null;
+        String query = "SELECT 'BK' || LPAD(nextval('book_id_seq')::text, 4, '0') AS book_id";
+
+        try {
+            PreparedStatement stm = conn.prepareStatement(query);
+            ResultSet rs = stm.executeQuery();
+
+            if(rs.next()){
+                new_id = rs.getString("book_id");
+            }
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new_id;
     }
 
     public void setId(String bookId){
@@ -74,7 +92,7 @@ public class books extends extra{
                 "FROM books b " +
                 "JOIN author a ON b.author_id = a.author_id " +
                 "JOIN publisher p ON b.publisher_id = p.publisher_id " +
-                "WHERE b.book_name LIKE ?";
+                "WHERE LOWER(b.book_name) LIKE LOWER(?) ";
 
             try (PreparedStatement  stm = conn.prepareStatement(query)){
                 stm.setString(1, "%" + keyword + "%");
@@ -118,5 +136,32 @@ public class books extends extra{
             }
         }
         return result_list;
+    }
+
+    public boolean insert_book(String bookId, String bookName, String authorId, Double price, String publisherId){
+        DbConnect newconn = new DbConnect();
+        Connection conn = newconn.connect();
+
+        String query = "INSERT INTO books (book_id, book_name, author_id, price, publisher_id) VALUES (?, ?, ?, ?, ?)";
+        try(PreparedStatement stm = conn.prepareStatement(query)) {
+            stm.setString(1, bookId);
+            stm.setString(2, bookName);
+            stm.setString(3, authorId);
+            stm.setDouble(4, price);
+            stm.setString(5, publisherId);
+
+            int res = stm.executeUpdate();
+            conn.close();
+
+            return res > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            return false;
+        }
     }
 }
