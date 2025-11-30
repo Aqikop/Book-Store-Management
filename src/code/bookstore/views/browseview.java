@@ -1,6 +1,8 @@
 package code.bookstore.views;
 
 import javax.swing.*;
+import javax.swing.FocusManager;
+
 import java.awt.image.*;
 import java.io.File;
 import javax.imageio.*;
@@ -9,12 +11,36 @@ import java.awt.event.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import code.bookstore.models.books;
+import code.bookstore.controllers.checkout_controller;
 
 public class browseview {
     String output_search;
+    private checkout_controller checkoutController;
+
+    private CardLayout page_container;
+    private JPanel page;
+
+    private Map<String, Object> buy_now_item; // For "buy now"
+    private List<Map<String, Object>> cart_items; // For "add to cart"
+
+    public browseview(){
+        this.checkoutController = new checkout_controller();
+        this.buy_now_item = new HashMap<>();
+        this.cart_items = new ArrayList<>();
+    }
+
+    public browseview(CardLayout page_container, JPanel page){
+        this.page_container = page_container;
+        this.page = page;
+        this.checkoutController = new checkout_controller();
+        this.buy_now_item = new HashMap<>();
+        this.cart_items = new ArrayList<>();
+    }
+
     public JPanel init_panel(){
         JPanel browse = new JPanel(new BorderLayout());
         
@@ -252,14 +278,50 @@ public class browseview {
         buy_btn.addMouseListener(new MouseAdapter(){
             @Override
             public void mouseClicked(MouseEvent e){
-                //int qty = (Integer) quantity_scoller.getValue();
+                int qty = (Integer) quantity_scoller.getValue();
+
+                buy_now_item.clear();
+                buy_now_item.put("bookId", book.get("bookId"));
+                buy_now_item.put("bookName", book.get("bookName"));
+                buy_now_item.put("authorName", book.get("authorName"));
+                buy_now_item.put("publisherName", book.get("publisherName"));
+                buy_now_item.put("price", book.get("price"));
+                buy_now_item.put("quantity", qty);
+                buy_now_item.put("totalPrice", (Double) book.get("price")*qty);
+
             }
         });
 
         cart_btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e){
-                //int qty = (Integer) quantity_scoller.getValue();
+                int qty = (Integer) quantity_scoller.getValue();
+
+                Map<String, Object> item_cart = new HashMap<>();
+                item_cart.put("bookId", book.get("bookId"));
+                item_cart.put("bookName", book.get("bookName"));
+                item_cart.put("authorName", book.get("authorName"));
+                item_cart.put("publisherName", book.get("publisherName"));
+                item_cart.put("price", book.get("price"));
+                item_cart.put("quantity", qty);
+                item_cart.put("totalPrice", (Double) book.get("price")*qty);
+
+                boolean in_cart = false;
+                for(Map<String, Object> i : cart_items){
+                    if(i.get("bookId").equals(book.get("bookId"))){
+                        int old_qty = (Integer) i.get("quantity");
+                        int new_qty = old_qty + qty;
+                        i.put("quantity", new_qty);
+                        i.put("totalPrice", (Double) book.get("price")*new_qty);
+                        in_cart = true;
+                        break;
+                    }
+                }
+
+                if(!in_cart){
+                    cart_items.add(item_cart);
+                }
+                
             }
         });
 
