@@ -16,10 +16,12 @@ import java.util.Map;
 
 import code.bookstore.models.books;
 import code.bookstore.controllers.checkout_controller;
+import code.bookstore.controllers.user_controller;
 
 public class browseview {
     String output_search;
     private checkout_controller checkoutController;
+    private user_controller userController;
 
     private CardLayout page_container;
     private JPanel page;
@@ -37,6 +39,7 @@ public class browseview {
     public browseview(CardLayout page_container, JPanel page){
         this.page_container = page_container;
         this.page = page;
+        this.userController = new user_controller();
         this.checkoutController = new checkout_controller();
         this.buy_now_item = new HashMap<>();
         this.cart_items = new ArrayList<>();
@@ -287,32 +290,39 @@ public class browseview {
         buy_btn.addMouseListener(new MouseAdapter(){
             @Override
             public void mouseClicked(MouseEvent e){
-                int qty = (Integer) quantity_scoller.getValue();
+                if(!userController.is_logged_in()){
+                    JOptionPane.showMessageDialog(null,
+                        "Please login or signup before continue to checkout"
+                        );
 
-                cart_items.clear();
+                }else{
+                    int qty = (Integer) quantity_scoller.getValue();
 
-                buy_now_item.clear();
-                buy_now_item.put("bookId", book.get("bookId"));
-                buy_now_item.put("bookName", book.get("bookName"));
-                buy_now_item.put("authorName", book.get("authorName"));
-                buy_now_item.put("publisherName", book.get("publisherName"));
-                buy_now_item.put("price", book.get("price"));
-                buy_now_item.put("quantity", qty);
-                buy_now_item.put("totalPrice", (Double) book.get("price")*qty);
+                    cart_items.clear();
 
-                System.out.println("Item: " + buy_now_item);
+                    buy_now_item.clear();
+                    buy_now_item.put("bookId", book.get("bookId"));
+                    buy_now_item.put("bookName", book.get("bookName"));
+                    buy_now_item.put("authorName", book.get("authorName"));
+                    buy_now_item.put("publisherName", book.get("publisherName"));
+                    buy_now_item.put("price", book.get("price"));
+                    buy_now_item.put("quantity", qty);
+                    buy_now_item.put("totalPrice", (Double) book.get("price")*qty);
 
-                checkoutController.set_buy_now_item(buy_now_item);
-                checkoutController.set_cart_items(new ArrayList<>());
+                    System.out.println("Item: " + buy_now_item);
 
-                // Refresh checkout view before showing it
-                if(checkoutViewRef != null) {
-                    checkoutViewRef.refreshCheckoutView();
-                }
+                    checkoutController.set_buy_now_item(buy_now_item);
+                    checkoutController.set_cart_items(new ArrayList<>());
 
-                if(page_container != null && page != null){
-                    page_container.show(page, "Cart");
-                    page.revalidate();
+                    // Refresh checkout view before showing it
+                    if(checkoutViewRef != null) {
+                        checkoutViewRef.refreshCheckoutView();
+                    }
+
+                    if(page_container != null && page != null){
+                        page_container.show(page, "Cart");
+                        page.revalidate();
+                    }
                 }
             }
         });
@@ -320,45 +330,51 @@ public class browseview {
         cart_btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e){
-                int qty = (Integer) quantity_scoller.getValue();
+                if(!userController.is_logged_in()){
+                    JOptionPane.showMessageDialog(null,
+                        "Please login or signup before continue to checkout"
+                        );
+                }else{
+                    int qty = (Integer) quantity_scoller.getValue();
 
-                Map<String, Object> item_cart = new HashMap<>();
-                item_cart.put("bookId", book.get("bookId"));
-                item_cart.put("bookName", book.get("bookName"));
-                item_cart.put("authorName", book.get("authorName"));
-                item_cart.put("publisherName", book.get("publisherName"));
-                item_cart.put("price", book.get("price"));
-                item_cart.put("quantity", qty);
-                item_cart.put("totalPrice", (Double) book.get("price")*qty);
+                    Map<String, Object> item_cart = new HashMap<>();
+                    item_cart.put("bookId", book.get("bookId"));
+                    item_cart.put("bookName", book.get("bookName"));
+                    item_cart.put("authorName", book.get("authorName"));
+                    item_cart.put("publisherName", book.get("publisherName"));
+                    item_cart.put("price", book.get("price"));
+                    item_cart.put("quantity", qty);
+                    item_cart.put("totalPrice", (Double) book.get("price")*qty);
 
-                boolean in_cart = false;
-                for(Map<String, Object> i : cart_items){
-                    if(i.get("bookId").equals(book.get("bookId"))){
-                        int old_qty = (Integer) i.get("quantity");
-                        int new_qty = old_qty + qty;
-                        i.put("quantity", new_qty);
-                        i.put("totalPrice", (Double) book.get("price")*new_qty);
-                        in_cart = true;
-                        break;
+                    boolean in_cart = false;
+                    for(Map<String, Object> i : cart_items){
+                        if(i.get("bookId").equals(book.get("bookId"))){
+                            int old_qty = (Integer) i.get("quantity");
+                            int new_qty = old_qty + qty;
+                            i.put("quantity", new_qty);
+                            i.put("totalPrice", (Double) book.get("price")*new_qty);
+                            in_cart = true;
+                            break;
+                        }
                     }
-                }
 
-                if(!in_cart){
-                    cart_items.add(item_cart);
-                }
-                
-                checkoutController.set_buy_now_item(new HashMap<>());
-                checkoutController.set_cart_items(cart_items);
+                    if(!in_cart){
+                        cart_items.add(item_cart);
+                    }
+                    
+                    checkoutController.set_buy_now_item(new HashMap<>());
+                    checkoutController.set_cart_items(cart_items);
 
-                // Refresh checkout view when items added to cart
-                if(checkoutViewRef != null) {
-                    checkoutViewRef.refreshCheckoutView();
-                }
+                    // Refresh checkout view when items added to cart
+                    if(checkoutViewRef != null) {
+                        checkoutViewRef.refreshCheckoutView();
+                    }
 
-                JOptionPane.showMessageDialog(null, 
-                    "Added to cart: " + book.get("bookName") + 
-                    "\nCart items: " + cart_items.size()
-                );
+                    JOptionPane.showMessageDialog(null, 
+                        "Added to cart: " + book.get("bookName") + 
+                        "\nCart items: " + cart_items.size()
+                    );
+                }
             }
         });
 
