@@ -134,9 +134,17 @@ public class template extends JFrame{
                         if(checkoutView != null) {
                             checkoutView.refreshCheckoutView();
                         }
-                        page_container.show(page, "Cart");
-                        page.revalidate();
-                        break;
+                        if(!userController.is_logged_in()){
+                            JOptionPane.showMessageDialog(null,
+                            "Please login or signup before continue to checkout"
+                            );
+                            break;
+                        }else{
+                            page_container.show(page, "Cart");
+                            page.revalidate();
+                            break;
+                        }
+                        
                     case "Login":
                         page_container.show(page, "Login");
                         page.revalidate();
