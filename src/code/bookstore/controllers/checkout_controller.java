@@ -31,4 +31,13 @@ public class checkout_controller {
     public List<Map<String, Object>> get_cart_items(){
         return cart_items;
     }
+
+    public List<Map<String, Object>> get_checkout_items(){
+        if(!buy_now_item.isEmpty()){
+            List<Map<String, Object>> item = new ArrayList<>();
+            item.add(buy_now_item);
+            return item;
+        }
+        return cart_items;
+    }
 }
