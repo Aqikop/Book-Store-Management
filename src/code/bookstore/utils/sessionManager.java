@@ -8,6 +8,8 @@ public class sessionManager {
     private Map<String, Object> curr_user;
     private boolean is_login;
 
+    private int curr_order_id = 0;
+
     private sessionManager(){
         this.curr_user = new HashMap<>();
         this.is_login = false;
@@ -18,6 +20,14 @@ public class sessionManager {
             inst = new sessionManager();
         }
         return inst;
+    }
+
+    public void set_order_id(int orderId){
+        this.curr_order_id = orderId;
+    }
+
+    public int get_curr_order_id(){
+        return curr_order_id;
     }
 
     public void login_user(String customerId, String email, String customerName){
