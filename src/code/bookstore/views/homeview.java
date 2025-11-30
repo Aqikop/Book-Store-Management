@@ -88,7 +88,4 @@ public class homeview {
 
         return panel;
     }
-    public static void main(String args[]){
-        new template();
-    }
 }
