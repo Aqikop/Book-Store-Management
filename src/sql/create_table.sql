@@ -39,7 +39,6 @@ CREATE TABLE shopping_cart (
     price NUMERIC(10, 2),
     shopping_date DATE,
     quantity INTEGER,
-    CONSTRAINT sc_id_pk PRIMARY KEY (shopping_cart_id),
     CONSTRAINT sc_bk_id_fk FOREIGN KEY (book_id) REFERENCES books (book_id) ON DELETE CASCADE
 );
 
@@ -75,6 +74,5 @@ CREATE TABLE order_details (
     shopping_cart_id INTEGER,
     CONSTRAINT od_id_pk PRIMARY KEY (order_id),
     CONSTRAINT od_c_id_fk FOREIGN KEY (customer_id) REFERENCES customer (customer_id) ON DELETE CASCADE,
-    CONSTRAINT od_st_fk FOREIGN KEY (shipping_type) REFERENCES shipping_type (shipping_type) ON DELETE CASCADE,
-    CONSTRAINT od_sc_id_fk FOREIGN KEY (shopping_cart_id) REFERENCES shopping_cart (shopping_cart_id) ON DELETE CASCADE
+    CONSTRAINT od_st_fk FOREIGN KEY (shipping_type) REFERENCES shipping_type (shipping_type) ON DELETE CASCADE
 );
