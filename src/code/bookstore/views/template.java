@@ -83,7 +83,7 @@ public class template extends JFrame{
         add(page, BorderLayout.CENTER);
 
         // Init homepage view
-        homeview home = new homeview();
+        homeview home = new homeview(page_container, page);
         JPanel home_view = home.init_panel();
         page.add(home_view, "Home");
 

@@ -1,6 +1,9 @@
 package code.bookstore.views;
 
 import javax.swing.*;
+
+import code.bookstore.controllers.user_controller;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -8,6 +11,14 @@ import javax.imageio.*;
 import java.io.*;
 
 public class homeview {
+    private CardLayout page_container;
+    private JPanel page;
+
+    public homeview(CardLayout page_container, JPanel page) {
+        this.page_container = page_container;
+        this.page = page;
+    }
+
     public JPanel init_panel(){
         JPanel panel = new JPanel(new GridBagLayout()) {
             private BufferedImage bg;
@@ -82,7 +93,8 @@ public class homeview {
 
         browse_button.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e){
-            System.out.println("a"); //Place holder
+                page_container.show(page, "Browse");
+                page.revalidate();
             }
         });
 
