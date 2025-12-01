@@ -198,6 +198,8 @@ public class checkoutview {
         checkout_btn.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent e){
                 if(processPayment()) {
+                    checkoutController.set_buy_now_item(new HashMap<>());
+                    checkoutController.set_cart_items(new ArrayList<>());
                     JOptionPane.showMessageDialog(checkoutPanel,
                     "Transaction Complete! Thanks for shopping with us.",
                     "Success",
