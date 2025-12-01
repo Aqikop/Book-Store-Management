@@ -199,7 +199,7 @@ public class checkoutview {
             public void mouseClicked(MouseEvent e){
                 if(processPayment()) {
                     JOptionPane.showMessageDialog(checkoutPanel,
-                    "Transaction Complete! Thanks for shopping us.",
+                    "Transaction Complete! Thanks for shopping with us.",
                     "Success",
                     JOptionPane.PLAIN_MESSAGE
                     );
